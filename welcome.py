@@ -12,232 +12,14 @@ from email.utils import formataddr
 from string import Template
 import time
 
+from emailSegments import emailSegments
+from emailSensitives import emailSensitives
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['DEBUG'] = False
-
-htmlTOP= """ 
-<head>
-  <style type="text/css">
-  @import url(https://fonts.googleapis.com/css?family=Montserrat);
-               
-  a {
-    text-decoration: none;
-    border: 0;
-    outline: none;
-    color: #bbbbbb;
-  }                 
-
-  </style>
-
-  <style type="text/css" media="screen">
-      @media screen {
-        td, h1, h2, h3 {
-          font-family: 'Montserrat', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
-        }
-      }
-  </style>
-
-  <style type="text/css" media="only screen and (max-width: 480px)">
-    /* Mobile styles */
-    @media only screen and (max-width: 480px) {
-
-      table[class="w320"] {
-        width: 320px !important;
-      }
-
-
-    }
-  </style>        
-</head>
-<body style="font-size: 14px;width: 100%; height: 100%; color: #ecf0f1; background: #ecf0f1; font-size: 14px; padding:0; margin:0; display:block; -webkit-text-size-adjust:none; -webkit-font-smoothing:antialiased;" bgcolor="#ecf0f1">
-    
-<table align="center" cellpadding="0" cellspacing="0" width="100%" height="100%" >
-  <tr>
-    <td style="text-align: center" align="center" valign="top" bgcolor="#333333"  width="100%">  
-
-      <center>
-      <br>
-        <table style="margin: 0 auto;" cellpadding="0" cellspacing="0" width="600" class="w320">
-          <tr>
-            <td style="text-align: center" align="center" valign="top">
-
-                <table style="margin: 0 auto;" cellpadding="0" cellspacing="0" width="100%" style="margin:0 auto;">
-                  <tr>
-                    <td style="font-size: 30px; text-align:center;">
-                      
-                    
-                      
-                    </td>
-                  </tr>
-                </table>
-				               <table style="margin: 0 auto;" cellpadding="0" cellspacing="0" width="100%" bgcolor="#333334">
-                  <tr>
-                    <td style="text-align: center">
-                    <br>
-                      <img src="http://degreesofsoundteamv2.mybluemix.net/images/logo2.png" width="200" height="200" alt="degrees of sound logo">
-                        
-                    </td>
-                      
-                  </tr>
-                  <tr>
-                      
-                    <td style="color: white; font-size: 26px; font-family: Helvetica, Arial, sans-serif; text-align: center">
-                        <br>
-                      $topTitle
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-
-                      <center>
-                        <table style="margin: 0 auto;" cellpadding="0" cellspacing="0" width="60%">
-                          <tr>
-                            <td style="color:#fff; font-family: Helvetica, Arial, sans-serif; text-align: center">
-                            
-Use this info to supercharge your career, and meet the right people!
-                            <br>
-                            <br>    
-                            
-                            </td>
-                          </tr>
-                        </table>
-                      </center>
-
-                    </td>
-                  </tr>
-                  
-                </table>
-"""
-
-
-
-
-
-htmlPathSectionTop="""
-<table style="margin: 0 auto;" cellpadding="0" cellspacing="0" width="100%" bgcolor="$colorCode">
-	<tr>
-		<td style="background-color:$colorCode; color: white; font-size: 26px; font-family: Helvetica, Arial, sans-serif; text-align: center">
-        	<br>
-            The shortest path to $user, who has $followers_count followers, is:
-        </td>
-    </tr>                    
-    <tr>
-    	<td style="text-align: center">
-"""
-
-
-
-htmlPathSectionTopNoPath="""
-<table style="margin: 0 auto;" cellpadding="0" cellspacing="0" width="100%" bgcolor="$colorCode">
-	<tr>
-		<td style="background-color:$colorCode; color: white; font-size: 26px; font-family: Helvetica, Arial, sans-serif; text-align: center">
-        </td>
-    </tr>                    
-    <tr>
-    	<td style="text-align: center">
-"""
-
-
-
-htmlInsertAvatar="""
-<br>
-	<a href="$permaLinkUrl"><img src="$picURL" width="100" height="100" style="border-radius:100%"/></a>                        
-"""
-
-htmlInsertArrow="""
-<br>                        
-	<img src="http://degreesofsoundteamv2.mybluemix.net/images/arrow.png" width="20" height="52" />
-"""
-
-
-htmlPathSectionBottomButton="""	
-</td>
-	</tr>
-        <tr>                    
-            </tr>
-            	<tr>
-                	<td style="text-align: center">
-                    	<br>
-                      	<div>
-                        	<a class="try" href="http://degreesofsound.com" style="background-color: #b86114; border-radius: 4px; color: white; display: inline-block; font-family: Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; line-height:50px; text-align:center; text-decoration:none;text-decoration:none; width:200px;"
-                      		>Try it again</a>
-                        
-                        </div>
-                      	<br>
-                     	 <br>
-                    </td>
-                </tr>
-</table>
-
-"""
-
-
-htmlPathSectionBottomNoButton="""
-</td>
-	</tr>
-        <tr>                    
-            </tr>
-            	<tr>
-                	<td style="text-align: center">
-                     	 <br>
-                    </td>
-                </tr>
-</table>
-
-"""
-
-
-htmlBottom= """                                            
-                <table style="margin: 0 auto;" cellpadding="0" cellspacing="0" width="100%" bgcolor="#333333" style="margin: 0 auto">
-                  <tr>
-                    <td style="background-color:#333333; text-align: center">
-                      <br>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="font-family: Helvetica, Arial, sans-serif; color:#bbbbbb; font-size:13px; text-align: center">
-                    	<a style="color:#bbbbbb;" href="mailto:degreesofsoundbot@gmail.com?Subject=feedback" >Contact</a>
-                      <br><br>
-                    </td>
-                  </tr>
-				  <tr>
-                    <td style="font-family: Helvetica, Arial, sans-serif; color:#bbbbbb; font-size:13px; text-align: center">
-                    	<a style="color:#bbbbbb;" href="https://www.facebook.com/degreesofsoundsoftware/" >Like us on Facebook!</a>
-                      <br><br>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="font-family: Helvetica, Arial, sans-serif; color:#bbbbbb; font-size:13px; text-align: center">
-                        Donate: <a href="bitcoin:1FWNaM53vP2rivVgNDp7rcXXNEubGATGzw?amount=0.0065&label=Degrees%20Of%20Sound%20Development">1FWNaM53vP2rivVgNDp7rcXXNEubGATGzw</a><br><br>
-                       Degrees of Sound &copy; 2016
-                       <br>
-                       <br>
-                    </td>
-                      
-                  </tr>
-                </table>
-				<br>
-
-
-
-
-            </td>
-          </tr>
-        </table>
-    </center>
-    </td>
-  </tr>
-</table>
-</body>
-</html>
-
-                
-
-	"""
 
 MAX_TRIES=10
 SLEEP_TIME=1
@@ -249,21 +31,20 @@ def Welcome():
 
 def makeHTMLPathSection(resultData, whichPath, isLastSection, colorCode):
 	datalength= len(resultData.get("data")[whichPath])
-	NewHtmlPathSectionTop=Template(htmlPathSectionTop).safe_substitute(colorCode=colorCode, user=str(resultData.get("data")[whichPath][-1].get("username")), followers_count=resultData.get("data")[whichPath][-1].get("followers_count"))
+	NewHtmlPathSectionTop=Template(emailSegments.htmlPathSectionTop).safe_substitute(colorCode=colorCode, user=str(resultData.get("data")[whichPath][-1].get("username")), followers_count=resultData.get("data")[whichPath][-1].get("followers_count"))
 	htmlArtistsAndArrows=""" """
 	personCounter=0
 	for person in resultData.get("data")[whichPath]:
-		newHtmlAvatar=Template(htmlInsertAvatar).safe_substitute(permaLinkUrl=str(person.get("permalink_url")), picURL=str(person.get("avatar_url")))
+		newHtmlAvatar=Template(emailSegments.htmlInsertAvatar).safe_substitute(permaLinkUrl=str(person.get("permalink_url")), picURL=str(person.get("avatar_url")))
 		htmlArtistsAndArrows=htmlArtistsAndArrows+newHtmlAvatar
 		if(personCounter!=datalength-1):
-			htmlArtistsAndArrows=htmlArtistsAndArrows+ htmlInsertArrow
+			htmlArtistsAndArrows=htmlArtistsAndArrows+ emailSegments.htmlInsertArrow
 
 		personCounter=personCounter+1
-
 	if(isLastSection==True):
-		return	NewHtmlPathSectionTop+htmlArtistsAndArrows+htmlPathSectionBottomButton
+		return	NewHtmlPathSectionTop+htmlArtistsAndArrows+emailSegments.htmlPathSectionBottomButton
 	else:
-		return	NewHtmlPathSectionTop+htmlArtistsAndArrows+htmlPathSectionBottomNoButton
+		return	NewHtmlPathSectionTop+htmlArtistsAndArrows+emailSegments.htmlPathSectionBottomNoButton
 
 
 
@@ -272,11 +53,11 @@ def makeEmailtarget(resultData):
 	logger.info("MAKING TARGET EMAIL")
 	datalength= len(resultData.get("data")[0])	
 	topTitle= "You're {} degree(s) away from {}!".format(str(datalength-1), str(resultData.get("username")))
-	NewTopTitle=Template(htmlTOP).safe_substitute(topTitle=topTitle)
+	NewTopTitle=Template(emailSegments.htmlTOP).safe_substitute(topTitle=topTitle)
 
 	pathsection=makeHTMLPathSection(resultData,0, True, "#e67e22")
 
-	return NewTopTitle+pathsection+htmlBottom
+	return NewTopTitle+pathsection+emailSegments.htmlBottom
 
 
 
@@ -290,7 +71,7 @@ def makeEmailMax(resultData):
 	
 	colors=["#e67e22","#eb9950", "#f0b47e"]	
 
-	NewTopTitle=Template(htmlTOP).safe_substitute(topTitle=topTitle)
+	NewTopTitle=Template(emailSegments.htmlTOP).safe_substitute(topTitle=topTitle)
 
 	pathsSections=""" """
 	pathCount=0
@@ -307,22 +88,22 @@ def makeEmailMax(resultData):
 		pathCount=pathCount+1
 
 
-	return NewTopTitle+pathsSections+htmlBottom		
+	return NewTopTitle+pathsSections+emailSegments.htmlBottom		
 
 	
 
 def makeEmailFail():
 	logger.info("MAKING FAIL EMAIL")
-	NewTopTitle=Template(htmlTOP).safe_substitute(topTitle="Sorry, soundcloud seems to be down. We're sorry, please try again!")
+	NewTopTitle=Template(emailSegments.htmlTOP).safe_substitute(topTitle="Sorry, soundcloud seems to be down. We're sorry, please try again!")
 
-	NewEmptyPathSec=Template(htmlPathSectionTopNoPath).safe_substitute(colorCode="#e67e22")
+	NewEmptyPathSec=Template(emailSegments.htmlPathSectionTopNoPath).safe_substitute(colorCode="#e67e22")
 
-	return NewTopTitle+NewEmptyPathSec+htmlPathSectionBottomButton+htmlBottom
+	return NewTopTitle+NewEmptyPathSec+emailSegments.htmlPathSectionBottomButton+emailSegments.htmlBottom
 
 
 
 def emailPath(pathToMail, email):
-	me = "degreesofsoundbot@gmail.com"
+	me = emailSensitives.address
 	you = email
 
 	# Create message container - the correct MIME type is multipart/alternative.
@@ -359,7 +140,7 @@ def emailPath(pathToMail, email):
 		server = smtplib.SMTP("smtp.gmail.com", 587)
 		server.ehlo()
 		server.starttls()
-		server.login(me, "itslitfam")
+		server.login(me, emailSensitives.pw)
 		server.sendmail(me, you, msg.as_string())
 		server.close()
 		logger.info('successfully sent the mail')
@@ -672,20 +453,6 @@ def extractInfo():
 	emailPath(finalresult, toEmail)	
 	logger.info(str(finalresult))
 	return jsonify(finalresult)
-
-
-@app.route('/api/testGraphBasic')
-def testOutBFS():
-	graph = {
-	1: [2, 3, 4],
-	2: [5, 6],
-	3: [10],
-	4: [7, 8],
-	5: [9, 10],
-	7: [11, 12],
-	11: [13]
-	}
-	return str(bfs(graph, 1, 13, 4))
 
 @app.route('/api/dummy')
 def dummyData():
