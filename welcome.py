@@ -1,6 +1,5 @@
 import os
 from flask import Flask, jsonify, request
-import soundcloud
 import logging
 import Queue
 import json
@@ -14,6 +13,8 @@ import time
 
 from emailSegments import emailSegments
 from emailSensitives import emailSensitives
+import soundcloud
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
